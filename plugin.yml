@@ -1,0 +1,15 @@
+name: ArmorQualities
+main: com.example.plugin.tomasalias
+version: 1.0
+api-version: 1.19
+author: Dominik
+# The description of the plugin
+description: A plugin that allows users to reforge armor by throwing it on top of a smithing table.
+
+commands: {}
+
+permissions: {}
+
+# Specify the dependencies
+depend:
+  - NBTAPI
