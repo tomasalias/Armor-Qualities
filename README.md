@@ -1,2 +1,5 @@
-# Armor-Qualities
-A plugin that allows users to reforge armor by throwing it on top of a smithing table.
+# Armor Qualities
+Remake of the [TheChurrro's Armor Qualities](https://www.planetminecraft.com/data-pack/thechurrro-s-armor-qualities/) datapack as a plugin
+
+Supports 1.13-1.21
+Java 21
