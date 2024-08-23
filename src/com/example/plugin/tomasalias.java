@@ -7,6 +7,7 @@ import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Item;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerDropItemEvent;
@@ -37,20 +38,30 @@ public class tomasalias extends JavaPlugin implements Listener {
     public void onPlayerDropItem(PlayerDropItemEvent event) {
         Item item = event.getItemDrop();
         ItemStack itemStack = item.getItemStack();
-        getLogger().info(item.getOwner() + " dropped an item");
+        Player player = event.getPlayer();
 
         if (isArmorPiece(itemStack.getType())) {
-            new BukkitRunnable() {
-                @Override
-                public void run() {
-                    Block blockUnder = item.getLocation().getBlock().getRelative(0, -1, 0);
-                    if (blockUnder.getType() == Material.SMITHING_TABLE) {
-                    	getLogger().info("Item is on a smithing table");
-                        applyReforge(item);
-                        this.cancel();
-                    }
-                }
-            }.runTaskTimer(this, 0L, 20L);
+        	Block blockUnder = item.getLocation().getBlock().getRelative(0, -1, 0);
+        	if (blockUnder.getType() == Material.SMITHING_TABLE) {
+        		new BukkitRunnable() {
+        			@Override
+        			public void run() {
+        				Block blockUnder = item.getLocation().getBlock().getRelative(0, -1, 0);
+        				if (blockUnder.getType() == Material.SMITHING_TABLE) {
+        					getLogger().info("Item is on a smithing table");
+        					if (player.getLevel() >= 2) {
+        						player.setLevel(player.getLevel() - 2);
+        						applyReforge(item);
+        					} else {
+        						player.sendMessage(ChatColor.RED + "You need at least 2 XP levels to reforge this item.");
+        					}
+        					this.cancel();
+        				} else {
+        					this.cancel();
+        				}
+        			}
+        		}.runTaskTimer(this, 0L, 20L);
+        	}
         }
     }
 
@@ -82,12 +93,13 @@ public class tomasalias extends JavaPlugin implements Listener {
     private void applyReforge(Item item) {
         ItemStack original = item.getItemStack();
         Material material = original.getType();
-        
+
         // Check if the item is not null
         if (item != null) {
-        	getLogger().info("Item is not null");
+            getLogger().info("Item is not null");
             item.remove();
             item.getWorld().playSound(item.getLocation(), Sound.BLOCK_ANVIL_PLACE, 1, 1.25f);
+            getLogger().info("Item removed");
 
             ItemStack reforgedItem = getReforgedItem(material);
             item.getWorld().dropItem(item.getLocation(), reforgedItem);
@@ -132,9 +144,43 @@ public class tomasalias extends JavaPlugin implements Listener {
         }
     }
 
-	private ItemStack getIronDiamondNetheriteReforgedItem(Material material, String reforge) {
+    private ItemStack getIronDiamondNetheriteReforgedItem(Material material, String reforge) {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
+
+        // Add armor attribute
+        switch (material) {
+            case IRON_HELMET:
+                addAttribute(meta, Attribute.GENERIC_ARMOR, 2, AttributeModifier.Operation.ADD_NUMBER);
+                break;
+            case IRON_CHESTPLATE:
+                addAttribute(meta, Attribute.GENERIC_ARMOR, 6, AttributeModifier.Operation.ADD_NUMBER);
+                break;
+            case IRON_LEGGINGS:
+                addAttribute(meta, Attribute.GENERIC_ARMOR, 5, AttributeModifier.Operation.ADD_NUMBER);
+                break;
+            case IRON_BOOTS:
+                addAttribute(meta, Attribute.GENERIC_ARMOR, 2, AttributeModifier.Operation.ADD_NUMBER);
+                break;
+            case DIAMOND_HELMET:
+            case NETHERITE_HELMET:
+                addAttribute(meta, Attribute.GENERIC_ARMOR, 3, AttributeModifier.Operation.ADD_NUMBER);
+                break;
+            case DIAMOND_CHESTPLATE:
+            case NETHERITE_CHESTPLATE:
+                addAttribute(meta, Attribute.GENERIC_ARMOR, 8, AttributeModifier.Operation.ADD_NUMBER);
+                break;
+            case DIAMOND_LEGGINGS:
+            case NETHERITE_LEGGINGS:
+                addAttribute(meta, Attribute.GENERIC_ARMOR, 6, AttributeModifier.Operation.ADD_NUMBER);
+                break;
+            case DIAMOND_BOOTS:
+            case NETHERITE_BOOTS:
+                addAttribute(meta, Attribute.GENERIC_ARMOR, 3, AttributeModifier.Operation.ADD_NUMBER);
+                break;
+		default:
+			break;
+        }
 
         List<String> lore = new ArrayList<>();
 
@@ -201,10 +247,11 @@ public class tomasalias extends JavaPlugin implements Listener {
         return item;
     }
 
-	private ItemStack getTurtleReforgedItem() {
+    private ItemStack getTurtleReforgedItem() {
         ItemStack item = new ItemStack(Material.TURTLE_HELMET);
         ItemMeta meta = item.getItemMeta();
 
+        addAttribute(meta, Attribute.GENERIC_ARMOR, 2, AttributeModifier.Operation.ADD_NUMBER);
         addAttribute(meta, Attribute.GENERIC_MAX_HEALTH, 10, AttributeModifier.Operation.ADD_NUMBER);
         addAttribute(meta, Attribute.GENERIC_KNOCKBACK_RESISTANCE, 1, AttributeModifier.Operation.ADD_NUMBER);
         addAttribute(meta, Attribute.GENERIC_MOVEMENT_SPEED, -0.5, AttributeModifier.Operation.ADD_NUMBER);
@@ -215,9 +262,27 @@ public class tomasalias extends JavaPlugin implements Listener {
         return item;
     }
 
-	private ItemStack getGoldenReforgedItem(Material material, String reforge) {
+    private ItemStack getGoldenReforgedItem(Material material, String reforge) {
         ItemStack item = new ItemStack(material);
         ItemMeta meta = item.getItemMeta();
+
+        // Add armor attribute
+        switch (material) {
+            case GOLDEN_HELMET:
+                addAttribute(meta, Attribute.GENERIC_ARMOR, 2, AttributeModifier.Operation.ADD_NUMBER);
+                break;
+            case GOLDEN_CHESTPLATE:
+                addAttribute(meta, Attribute.GENERIC_ARMOR, 5, AttributeModifier.Operation.ADD_NUMBER);
+                break;
+            case GOLDEN_LEGGINGS:
+                addAttribute(meta, Attribute.GENERIC_ARMOR, 3, AttributeModifier.Operation.ADD_NUMBER);
+                break;
+            case GOLDEN_BOOTS:
+                addAttribute(meta, Attribute.GENERIC_ARMOR, 1, AttributeModifier.Operation.ADD_NUMBER);
+                break;
+		default:
+			break;
+        }
 
         List<String> lore = new ArrayList<>();
 
