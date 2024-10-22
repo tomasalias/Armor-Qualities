@@ -6,6 +6,8 @@ import org.bukkit.Material;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.attribute.AttributeModifier;
 import org.bukkit.block.Block;
+import org.bukkit.command.Command;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Item;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -27,11 +29,35 @@ import java.util.UUID;
 public class tomasalias extends JavaPlugin implements Listener {
 
     private final Random random = new Random();
+    private int i = 8;
 
+    // Enable the plugin
     @Override
     public void onEnable() {
         Bukkit.getPluginManager().registerEvents(this, this);
         this.getLogger().info("Reforge plugin enabled");
+        // get the int from the config file
+        this.i = this.getConfig().getInt("XP_COST");
+    }
+    
+    // Disable the plugin
+    @Override
+	public void onDisable() {
+		this.getLogger().info("Reforge plugin disabled");
+	}
+    
+    // Reload command
+    @Override
+    public boolean onCommand(CommandSender sender, Command cmd, String label, String[] args) {
+        if (label.equalsIgnoreCase("reforge-reload")) {
+            if (!sender.hasPermission("reforge.reload")) {
+                sender.sendMessage(ChatColor.RED + "You do not have permission to use this command.");
+                return true;
+            }
+            this.reloadConfig();
+            sender.sendMessage(ChatColor.GREEN + "Reforge plugin reloaded");
+        }
+        return true;
     }
 
     @EventHandler
@@ -41,27 +67,26 @@ public class tomasalias extends JavaPlugin implements Listener {
         Player player = event.getPlayer();
 
         if (isArmorPiece(itemStack.getType())) {
-        	Block blockUnder = item.getLocation().getBlock().getRelative(0, -1, 0);
-        	if (blockUnder.getType() == Material.SMITHING_TABLE) {
-        		new BukkitRunnable() {
-        			@Override
-        			public void run() {
-        				Block blockUnder = item.getLocation().getBlock().getRelative(0, -1, 0);
-        				if (blockUnder.getType() == Material.SMITHING_TABLE) {
-        					getLogger().info("Item is on a smithing table");
-        					if (player.getLevel() >= 2) {
-        						player.setLevel(player.getLevel() - 2);
-        						applyReforge(item);
-        					} else {
-        						player.sendMessage(ChatColor.RED + "You need at least 2 XP levels to reforge this item.");
-        					}
-        					this.cancel();
-        				} else {
-        					this.cancel();
-        				}
-        			}
-        		}.runTaskTimer(this, 0L, 20L);
-        	}
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    Block blockUnder = item.getLocation().getBlock().getRelative(0, -1, 0);
+                    if (blockUnder.getType() == Material.SMITHING_TABLE || blockUnder.getType() == Material.AIR) {
+                    	if (blockUnder.getType() == Material.SMITHING_TABLE) {
+                    		getLogger().info("Item is on a smithing table");
+                    		if (player.getLevel() >= i) {
+                    			player.setLevel(player.getLevel() - i);
+                    			applyReforge(item);
+                    		} else {
+                    			player.sendMessage(ChatColor.RED + "You need at least 2 XP levels to reforge this item.");
+                    		}
+                    		this.cancel();
+                    	}
+                    } else {
+                        this.cancel();
+                    }
+                }
+            }.runTaskTimer(this, 0L, 20L);
         }
     }
 
